@@ -4,7 +4,7 @@ defmodule Macaroni.MixProject do
   def project do
     [
       app: :macaroni,
-      version: "0.1.0",
+      version: "0.1.2",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -42,7 +42,8 @@ defmodule Macaroni.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:observer_cli, "~> 1.5"}
     ]
   end
 

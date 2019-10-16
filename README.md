@@ -1,20 +1,27 @@
 # Macaroni
 
-To start your Phoenix server:
+[Guide used](https://akoutmos.com/post/multipart-docker-and-elixir-1.9-releases/)
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.setup`
-  * Install Node.js dependencies with `cd assets && npm install`
-  * Start Phoenix endpoint with `mix phx.server`
+## Docker build and run
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+**Build**
+`docker build -t macaroni-app .`
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+**Run**
+`docker run --publish 4000:4000 --env COOL_TEXT='ELIXIR ROCKS!!!!' --env SECRET_KEY_BASE=$(mix phx.gen.secret) --env APP_PORT=4000 --env DATABASE_URL=postgresql://postgres:@docker.for.mac.host.internal/macaroni_dev macaroni-app:latest`
 
-## Learn more
+`docker.for.mac.host.internal` instead of `localhost` to access mac localhost
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+**Run a shell in the running container**
+```
+docker exec -it <container_id> bash
+./prod/rel/macaroni/bin/macaroni remote
+
+> :observer_cli.start()
+```
+
+## Push to ECR
+
+```sh
+docker push 782603956529.dkr.ecr.ap-southeast-1.amazonaws.com/macaroni:latest
+```
