@@ -1,11 +1,13 @@
 <section class="phx-hero">
   <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>
   <p>A productive web framework that<br/>does not compromise speed or maintainability.</p>
-  <p>Version 0.1.6</p>
+  <p>Version 0.2.1</p>
   <p>PUBLIC_HOSTNAME: <%= Application.get_env(:macaroni, :public_hostname) %></p>
   <p><%= Application.get_env(:macaroni, :cool_text) %></p>
   <strong>Nodes</strong>
   <p><%= Node.list() |> Enum.join(",") %></p>
+  <strong>Node.self</strong>
+  <p><%= Node.self() %></p>
 </section>
 
 <section class="row">

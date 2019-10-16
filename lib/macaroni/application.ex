@@ -7,7 +7,11 @@ defmodule Macaroni.Application do
 
   def start(_type, _args) do
     # List all child processes to be supervised
+    topologies = Application.get_env(:libcluster, :topologies)
+
     children = [
+      # libcluster
+      {Cluster.Supervisor, [topologies, [name: Macaroni.ClusterSupervisor]]},
       # Start the Ecto repository
       Macaroni.Repo,
       # Start the endpoint when the application starts
