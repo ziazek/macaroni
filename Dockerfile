@@ -46,17 +46,22 @@ FROM debian:stretch AS app
 ENV LANG=C.UTF-8
 
 # Install openssl
-RUN apt-get update && apt-get install -y openssl
+RUN apt-get update && apt-get install -y openssl jq curl
 
 # Copy over the build artifact from the previous step and create a non root user
 RUN useradd --create-home app
 WORKDIR /home/app
 COPY --from=app_builder /app/_build .
 RUN chown -R app: ./prod
+COPY ./start.sh .
+RUN chown -R app: ./start.sh
+RUN ["chmod", "+x", "start.sh"]
 USER app
 
 # Set public hostname
-RUN export PUBLIC_HOSTNAME=$(curl http://169.254.170.2/v2/metadata | jq -r ".Containers[0].Networks[0].IPv4Addresses[0]"); echo $PUBLIC_HOSTNAME;
+# RUN export PUBLIC_HOSTNAME=$(curl http://169.254.170.2/v2/metadata --max-time 5 | jq -r ".Containers[0].Networks[0].IPv4Addresses[0]"); echo $PUBLIC_HOSTNAME;
 
 # Run the Phoenix app
-CMD ["./prod/rel/macaroni/bin/macaroni", "start"]
+# CMD ["./prod/rel/macaroni/bin/macaroni", "start"]
+
+ENTRYPOINT ./start.sh

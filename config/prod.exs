@@ -17,6 +17,18 @@ config :macaroni, MacaroniWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :libcluster,
+  topologies: [
+    dns_poll_example: [
+      strategy: Cluster.Strategy.DNSPoll,
+      config: [
+        polling_interval: 5_000,
+        query: "macaroni-service-lb.local",
+        node_basename: "macaroni"
+      ]
+    ]
+  ]
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
