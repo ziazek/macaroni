@@ -1,67 +1,44 @@
-# ---- Build Stage ----
-# FROM erlang:21 AS app_builder
-FROM elixir:1.9.1 AS app_builder
+FROM elixir:1.9.1-alpine as build
 
-# Set environment variables for building the application
-ENV MIX_ENV=prod \
-    TEST=1 \
-    LANG=C.UTF-8
-
-# Fetch the latest version of Elixir (once the 1.9 docker image is available you won't have to do this)
-# RUN set -xe \
-#   && ELIXIR_DOWNLOAD_URL="https://github.com/elixir-lang/elixir/archive/v1.9.0-rc.0.tar.gz" \
-#   && ELIXIR_DOWNLOAD_SHA256="fa019ba18556f53bfb77840b0970afd116517764251704b55e419becb0b384cf" \
-#   && curl -fSL -o elixir-src.tar.gz $ELIXIR_DOWNLOAD_URL \
-#   && echo "$ELIXIR_DOWNLOAD_SHA256  elixir-src.tar.gz" | sha256sum -c - \
-#   && mkdir -p /usr/local/src/elixir \
-#   && tar -xzC /usr/local/src/elixir --strip-components=1 -f elixir-src.tar.gz \
-#   && rm elixir-src.tar.gz \
-#   && cd /usr/local/src/elixir \
-#   && make install clean
-
-# Install hex and rebar
-RUN mix local.hex --force && \
-    mix local.rebar --force
-
-# Create the application build directory
-RUN mkdir /app
+# # install build dependencies
+RUN apk add --no-cache \
+  gcc \
+  g++ \
+  git \
+  make \
+  musl-dev
+RUN mix do local.hex --force, local.rebar --force
 WORKDIR /app
 
-# Copy over all the necessary application files and directories
-COPY config ./config
-COPY lib ./lib
-COPY priv ./priv
-COPY mix.exs .
-COPY mix.lock .
+FROM build as deps
 
-# Fetch the application dependencies and build the application
-RUN mix deps.get
-RUN mix deps.compile
+COPY mix.exs mix.lock ./
+
+ARG MIX_ENV=prod
+ENV MIX_ENV=$MIX_ENV
+RUN mix do deps.get --only=$MIX_ENV, deps.compile
+
+FROM deps as releaser
+COPY . .
+ENV MIX_ENV=$MIX_ENV
 RUN mix phx.digest
 RUN mix release
 
-# ---- Application Stage ----
-FROM debian:stretch AS app
+# Release
+FROM alpine:3.9
 
-ENV LANG=C.UTF-8
+RUN apk add --no-cache bash libstdc++ openssl jq curl
+WORKDIR /app
+COPY --from=releaser /app/_build/prod/rel/macaroni ./
+# RUN adduser --create-home app
 
-# Install openssl
-RUN apt-get update && apt-get install -y openssl jq curl
-
-# Copy over the build artifact from the previous step and create a non root user
-RUN useradd --create-home app
-WORKDIR /home/app
-COPY --from=app_builder /app/_build .
-RUN chown -R app: ./prod
 COPY ./start.sh .
-RUN chown -R app: ./start.sh
+
+RUN addgroup -S app && adduser -S -G app app
+RUN chown -R app: ./
 RUN ["chmod", "+x", "start.sh"]
 USER app
 
-# Set public hostname
-# RUN export PUBLIC_HOSTNAME=$(curl http://169.254.170.2/v2/metadata --max-time 5 | jq -r ".Containers[0].Networks[0].IPv4Addresses[0]"); echo $PUBLIC_HOSTNAME;
 
-# Run the Phoenix app
-# CMD ["./prod/rel/macaroni/bin/macaroni", "start"]
-
+# ENTRYPOINT ["./bin/macaroni", "start"]
 ENTRYPOINT ./start.sh

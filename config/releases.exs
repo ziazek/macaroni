@@ -9,6 +9,7 @@ public_hostname = System.fetch_env!("PUBLIC_HOSTNAME")
 
 config :macaroni, MacaroniWeb.Endpoint,
   http: [:inet6, port: String.to_integer(application_port)],
+  server: true,
   secret_key_base: secret_key_base
 
 config :macaroni,

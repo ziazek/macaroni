@@ -23,5 +23,6 @@ docker exec -it <container_id> bash
 ## Push to ECR
 
 ```sh
+$(aws ecr get-login --no-include-email)
 docker push 782603956529.dkr.ecr.ap-southeast-1.amazonaws.com/macaroni:latest
 ```
