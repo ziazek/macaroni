@@ -1,5 +1,7 @@
 # Macaroni
 
+Test project to try distributed Elixir on AWS ECS/Fargate
+
 [Guide used](https://akoutmos.com/post/multipart-docker-and-elixir-1.9-releases/)
 
 ## Docker build and run
